@@ -1,0 +1,155 @@
+---
+layout: default
+---
+<article class="post">
+  <header class="post-header">
+    <a href="{{ '/' | relative_url }}" class="back-link">← voltar para todos os posts</a>
+    <div class="post-meta">
+      {% assign words = content | strip_html | number_of_words %}
+      {% assign read_min = words | plus: 179 | divided_by: 180 %}
+      {% if read_min < 1 %}{% assign read_min = 1 %}{% endif %}
+      <span>📅 <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%d/%m/%Y" }}</time> · ⏱️ {{ read_min }} min de leitura</span>
+      {% if page.tags and page.tags.size > 0 %}
+      <div class="tags">
+        {% for tag in page.tags %}
+        <span class="tag">#{{ tag }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <h1>{{ page.title }}</h1>
+  </header>
+
+  <div class="post-content glass">
+    {{ content }}
+  </div>
+
+  <div class="feedback-box glass">
+    <div class="like-section">
+      <button type="button" class="like-btn" id="btn-like" aria-label="Curtir este post">
+        <span class="like-icon">👍</span>
+        <span class="like-text">Gostou da dica?</span>
+        <span class="like-counter" id="like-count">...</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="share-bar glass" aria-label="Compartilhar este post">
+    <span class="share-label"><span class="c">$</span> share --post</span>
+    <div class="share-actions">
+      <button type="button" class="share-btn primary" id="btn-share-native">🔗 Compartilhar</button>
+      <a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url | url_encode }}" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a class="share-btn" href="https://api.whatsapp.com/send?text={{ page.title | append: ' — ' | append: site.url | append: page.url | url_encode }}" target="_blank" rel="noopener">WhatsApp ↗</a>
+      <button type="button" class="share-btn" id="btn-copy-link">📋 Copiar link</button>
+    </div>
+  </div>
+
+  <nav class="post-nav" aria-label="Navegação entre posts">
+    {% if page.previous.url %}
+    <a class="glass nav-card prev" href="{{ page.previous.url | relative_url }}">
+      <span>« post anterior</span>
+      <strong>{{ page.previous.title }}</strong>
+    </a>
+    {% else %}
+    <div></div>
+    {% endif %}
+    {% if page.next.url %}
+    <a class="glass nav-card next" href="{{ page.next.url | relative_url }}">
+      <span>próximo post »</span>
+      <strong>{{ page.next.title }}</strong>
+    </a>
+    {% endif %}
+  </nav>
+</article>
+
+<script>
+  (() => {
+    const shareData = {
+      title: {{ page.title | jsonify }},
+      text: {{ page.excerpt | default: page.title | strip_html | normalize_whitespace | jsonify }},
+      url: window.location.href
+    };
+    const nativeBtn = document.getElementById('btn-share-native');
+    const copyBtn = document.getElementById('btn-copy-link');
+
+    function copyUrl(btn, defaultLabel) {
+      navigator.clipboard.writeText(shareData.url).then(() => {
+        btn.textContent = '✅ Link copiado!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = defaultLabel;
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    if (nativeBtn) {
+      nativeBtn.addEventListener('click', () => {
+        if (navigator.share) {
+          navigator.share(shareData).catch(() => {});
+        } else {
+          copyUrl(nativeBtn, '🔗 Compartilhar');
+        }
+      });
+    }
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => copyUrl(copyBtn, '📋 Copiar link'));
+    }
+
+    // Sistema de Like (Lyket API)
+    const apiKey = {{ site.lyket_api_key | jsonify }} || 'pt_0c0d363fe585179d245c2795300175';
+    const postId = {{ page.slug | default: page.id | jsonify }};
+    const likeBtn = document.getElementById('btn-like');
+    const likeCount = document.getElementById('like-count');
+    const storageKey = 'lyket_liked_' + postId;
+
+    if (localStorage.getItem(storageKey)) {
+      likeBtn.classList.add('liked');
+    }
+
+    // Busca contagem atual persistida
+    fetch(`https://api.lyket.dev/v1/like-buttons/blog_posts/${postId}`, {
+      headers: { 'Authorization': `Bearer ${apiKey}` }
+    })
+    .then(res => res.ok ? res.json() : Promise.reject())
+    .then(data => {
+      likeCount.textContent = data.data.attributes.total_likes || 0;
+      if (data.data.attributes.user_has_liked) {
+        likeBtn.classList.add('liked');
+        localStorage.setItem(storageKey, 'true');
+      }
+    })
+    .catch(() => {
+      if (likeCount.textContent === '...') likeCount.textContent = '0';
+    });
+
+    // Evento de clique para curtir
+    likeBtn.addEventListener('click', () => {
+      // Evita cliques múltiplos se já curtiu ou se está processando
+      if (likeBtn.classList.contains('loading') || localStorage.getItem(storageKey)) return;
+      likeBtn.classList.add('loading');
+
+      fetch(`https://api.lyket.dev/v1/like-buttons/blog_posts/${postId}/press`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+      })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        likeCount.textContent = data.data.attributes.total_likes || 0;
+        likeBtn.classList.add('liked');
+        localStorage.setItem(storageKey, 'true');
+      })
+      .catch(() => {
+        // Fallback local se a API estiver fora
+        let current = parseInt(likeCount.textContent, 10) || 0;
+        likeCount.textContent = current + 1;
+        likeBtn.classList.add('liked');
+        localStorage.setItem(storageKey, 'true');
+      })
+      .finally(() => {
+        likeBtn.classList.remove('loading');
+      });
+    });
+  })();
+</script>

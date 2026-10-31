@@ -1,0 +1,31 @@
+title: "guineves :: blog"
+description: "Dicas, comandos, scripts e anotações sobre Linux, Bash, Middleware, Infraestrutura e Automação por Guilherme Neves."
+url: "https://blog.guineves.com.br"
+baseurl: ""
+lang: "pt-BR"
+timezone: "America/Sao_Paulo"
+
+author:
+  name: "Guilherme Neves"
+  url: "https://www.guineves.com.br"
+  email: "gmneves@gmail.com"
+  linkedin: "https://www.linkedin.com/in/guimneves"
+
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+permalink: /:slug/
+
+# Chave pública do Lyket (substitua pela sua cadastrada em lyket.dev se desejar)
+lyket_api_key: "pt_0c0d363fe585179d245c2795300175"
+
+plugins:
+  - jekyll-sitemap
+  - jekyll-feed
+
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock

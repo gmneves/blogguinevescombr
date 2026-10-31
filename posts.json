@@ -1,0 +1,17 @@
+---
+layout: null
+permalink: /posts.json
+---
+[
+{% for post in site.posts limit:6 %}
+  {% assign words = post.content | strip_html | number_of_words %}{% assign read_min = words | plus: 179 | divided_by: 180 %}{% if read_min < 1 %}{% assign read_min = 1 %}{% endif %}{
+    "title": {{ post.title | jsonify }},
+    "url": "{{ site.url }}{{ post.url }}",
+    "date": "{{ post.date | date: '%d/%m/%Y' }}",
+    "read_time": "{{ read_min }} min",
+    "iso_date": "{{ post.date | date_to_xmlschema }}",
+    "excerpt": {{ post.excerpt | strip_html | normalize_whitespace | truncate: 150 | jsonify }},
+    "tags": {{ post.tags | jsonify }}
+  }{% unless forloop.last %},{% endunless %}
+{% endfor %}
+]

@@ -1,0 +1,37 @@
+---
+layout: default
+title: "404: No such file or directory"
+permalink: /404.html
+---
+<section class="err-wrap" style="min-height: 68vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 1.6rem; padding: 2.5rem 0;">
+  <div style="font-family: var(--mono); font-size: clamp(4rem, 12vw, 6.5rem); font-weight: 800; line-height: 1;">
+    <span class="grad">404</span>
+  </div>
+
+  <div class="glass" style="width: 100%; max-width: 680px; text-align: left; overflow: hidden; border-radius: 14px;">
+    <div style="display: flex; align-items: center; gap: .45rem; padding: .7rem 1rem; background: var(--bg2); border-bottom: 1px solid var(--border);">
+      <i style="width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; display: inline-block;"></i>
+      <i style="width: 12px; height: 12px; border-radius: 50%; background: #febc2e; display: inline-block;"></i>
+      <i style="width: 12px; height: 12px; border-radius: 50%; background: #28c840; display: inline-block;"></i>
+      <span style="margin-left: auto; font-family: var(--mono); font-size: .75rem; color: var(--muted);">bash — exit code 1</span>
+    </div>
+    <pre style="padding: 1.4rem; font-family: var(--mono); font-size: .86rem; line-height: 1.8; white-space: pre-wrap;"><span class="c">root@guineves:~/blog#</span> cat <span id="bad-path">post.md</span>
+<span style="color: #ff5f57;">cat: <span id="bad-path-2">post.md</span>: No such file or directory</span>
+
+<span class="c">root@guineves:~/blog#</span> echo $?
+<span style="color: var(--amber);">1</span>
+
+<span class="c">root@guineves:~/blog#</span> <span class="m"># Esse artigo não foi encontrado.</span><span class="cursor">▋</span></pre>
+  </div>
+
+  <div style="display: flex; gap: .8rem; flex-wrap: wrap; justify-content: center; font-family: var(--mono); font-size: .9rem;">
+    <a href="{{ '/' | relative_url }}" class="glass" style="padding: .8rem 1.3rem; border-radius: 10px; background: linear-gradient(135deg, var(--green), var(--cyan)); color: var(--bg); font-weight: 800; border: none;">cd ~/blog (Ver todos os posts)</a>
+    <a href="https://www.guineves.com.br" class="glass" style="padding: .8rem 1.3rem; border-radius: 10px;">cd ~ (Ir para o Site Principal)</a>
+  </div>
+</section>
+
+<script>
+  const p = window.location.pathname || '/404';
+  document.getElementById('bad-path').textContent = p;
+  document.getElementById('bad-path-2').textContent = p;
+</script>

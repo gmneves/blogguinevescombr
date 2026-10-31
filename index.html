@@ -1,0 +1,67 @@
+---
+layout: default
+---
+<section class="blog-hero">
+  <p class="prompt">root@guineves:~/blog# <span>ls -lh posts/</span><span class="cursor">▋</span></p>
+  <h1>Dicas &amp; <span class="grad">Anotações</span></h1>
+  <p class="lead">Comandos rápidos, scripts de terminal e anotações práticas do dia a dia em Linux, Bash e Infraestrutura.</p>
+
+  <div class="search-bar glass">
+    <span class="c">$</span>
+    <span class="cmd">grep -i</span>
+    <input type="search" id="search-input" placeholder="filtrar por título, comando ou #tag..." aria-label="Filtrar posts">
+  </div>
+</section>
+
+<section class="posts-section">
+  <div class="post-list" id="post-list">
+    {% for post in site.posts %}
+    {% assign words = post.content | strip_html | number_of_words %}
+    {% assign read_min = words | plus: 179 | divided_by: 180 %}
+    {% if read_min < 1 %}{% assign read_min = 1 %}{% endif %}
+    <article class="post-card glass" data-search="{{ post.title | downcase | escape }} {{ post.tags | join: ' ' | downcase | escape }} {{ post.content | strip_html | normalize_whitespace | downcase | escape }}">
+      <div class="post-meta">
+        <span><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%d/%m/%Y" }}</time> · ⏱️ {{ read_min }} min de leitura</span>
+        {% if post.tags %}
+        <div class="tags">
+          {% for tag in post.tags %}
+          <span class="tag" data-tag="#{{ tag }}" style="cursor:pointer" title="Filtrar por #{{ tag }}">#{{ tag }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <h2><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
+      <p class="excerpt">{{ post.excerpt | strip_html | truncate: 180 }}</p>
+      <a href="{{ post.url | relative_url }}" class="read-more">ler artigo →</a>
+    </article>
+    {% endfor %}
+  </div>
+  <p id="no-results" class="no-results" hidden>Nenhum post encontrado para esse filtro.</p>
+</section>
+
+<script>
+  const input = document.getElementById('search-input');
+  const cards = document.querySelectorAll('.post-card');
+  const empty = document.getElementById('no-results');
+
+  function filterPosts() {
+    const q = input.value.trim().toLowerCase().replace(/^#/, '');
+    let visible = 0;
+    cards.forEach((c) => {
+      const match = !q || c.dataset.search.includes(q);
+      c.hidden = !match;
+      if (match) visible++;
+    });
+    empty.hidden = visible > 0;
+  }
+
+  input.addEventListener('input', filterPosts);
+
+  document.querySelectorAll('.tag[data-tag]').forEach((t) => {
+    t.addEventListener('click', () => {
+      input.value = t.dataset.tag;
+      filterPosts();
+      input.focus();
+    });
+  });
+</script>

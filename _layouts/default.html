@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if page.title %}{{ page.title }} — {{ site.title }}{% else %}{{ site.title }} — Dicas &amp; Anotações de Infraestrutura{% endif %}</title>
+  <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 | escape }}">
+  <meta property="og:title" content="{{ page.title | default: site.title }}">
+  <meta property="og:description" content="{{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 | escape }}">
+  <meta property="og:type" content="{% if page.layout == 'post' %}article{% else %}website{% endif %}">
+  <meta property="og:url" content="{{ page.url | absolute_url }}">
+  <meta property="og:image" content="{{ '/assets/og-image.png' | absolute_url }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="{{ '/assets/og-image.png' | absolute_url }}">
+  <meta name="robots" content="{% if page.url == '/404.html' %}noindex, nofollow{% else %}index, follow{% endif %}">
+  <link rel="canonical" href="{{ page.url | absolute_url }}">
+  <link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}">
+  {% if page.layout == 'post' %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": {{ page.title | jsonify }},
+    "description": {{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 | jsonify }},
+    "datePublished": "{{ page.date | date_to_xmlschema }}",
+    "url": "{{ page.url | absolute_url }}",
+    "image": "{{ '/assets/og-image.png' | absolute_url }}",
+    "author": {
+      "@type": "Person",
+      "name": "Guilherme Neves",
+      "url": "https://www.guineves.com.br"
+    }
+  }
+  </script>
+  {% endif %}
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
+  <script>
+    (function() {
+      function getTheme() {
+        const match = document.cookie.match(/(^|;)\s*site_theme=([^;]+)/);
+        if (match) return match[2];
+        try { return localStorage.getItem('theme'); } catch(e) {}
+        return null;
+      }
+      if (getTheme() === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="nav" id="top">
+    <a href="{{ '/' | relative_url }}" class="logo" id="nav-logo">[guineves <span class="accent">~/blog</span>]#<span class="cursor">_</span></a>
+    <nav>
+      <a href="{{ '/' | relative_url }}">Posts</a>
+      <a href="https://www.guineves.com.br">Sobre mim ↗</a>
+      <a href="https://www.linkedin.com/in/guimneves" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <button type="button" class="theme-toggle" id="theme-btn" aria-label="Alternar tema">
+        <span class="theme-icon">☀️</span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    {{ content }}
+  </main>
+
+  <footer>
+    <p>[guineves ~/blog]# exit <span class="m">— © <span id="year"></span> <a href="https://www.guineves.com.br">Guilherme Neves</a> · hospedado no GitHub Pages</span></p>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Theme toggle compartilhado entre subdominios
+    const themeBtn = document.getElementById('theme-btn');
+    if (themeBtn) {
+      const setTheme = (theme) => {
+        const host = window.location.hostname;
+        const domain = host.includes('guineves.com.br') ? '; domain=.guineves.com.br' : '';
+        document.cookie = `site_theme=${theme}; path=/${domain}; max-age=31536000; SameSite=Lax`;
+        try { localStorage.setItem('theme', theme); } catch(e) {}
+      };
+
+      const updateIcon = () => {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        const icon = themeBtn.querySelector('.theme-icon');
+        if (icon) icon.textContent = isLight ? '🌙' : '☀️';
+      };
+      updateIcon();
+
+      themeBtn.addEventListener('click', () => {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        if (isLight) {
+          document.documentElement.removeAttribute('data-theme');
+          setTheme('dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          setTheme('light');
+        }
+        updateIcon();
+      });
+    }
+
+    // Add copy buttons to code blocks
+    document.querySelectorAll('pre').forEach((pre) => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.type = 'button';
+      btn.textContent = 'copiar';
+      btn.addEventListener('click', () => {
+        const code = pre.querySelector('code') ? pre.querySelector('code').innerText : pre.innerText;
+        navigator.clipboard.writeText(code.trim()).then(() => {
+          btn.textContent = 'copiado!';
+          btn.classList.add('copied');
+          setTimeout(() => { btn.textContent = 'copiar'; btn.classList.remove('copied'); }, 1800);
+        });
+      });
+      pre.appendChild(btn);
+    });
+  </script>
+  <script>window.goatcounter = { path: (p) => location.host + p };</script>
+  <script data-goatcounter="https://guineves.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
